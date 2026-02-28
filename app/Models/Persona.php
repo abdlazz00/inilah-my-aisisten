@@ -14,4 +14,9 @@ class Persona extends Model
     protected $casts = [
         'is_active' => 'boolean'
     ];
+
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class);
+    }
 }

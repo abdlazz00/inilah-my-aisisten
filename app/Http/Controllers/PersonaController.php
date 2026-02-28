@@ -14,8 +14,8 @@ class PersonaController extends Controller
     public function index()
     {
         return Inertia::render('Personas/PersonaBuilder', [
-            // Kirim persona yang sedang aktif agar muncul di Textarea jika sudah ada
-            'activePersona' => Persona::where('is_active', true)->first()
+            'activePersona' => Persona::where('is_active', true)->first(),
+            'personas' => Persona::latest()->get()
         ]);
     }
 
@@ -64,5 +64,11 @@ class PersonaController extends Controller
         Persona::create($request->only(['name', 'system_prompt', 'is_active']));
 
         return back()->with('success', 'Persona berhasil disimpan!');
+    }
+
+    public function destroy(Persona $persona)
+    {
+        $persona->delete();
+        return back()->with('success', 'Persona berhasil dihapus!');
     }
 }

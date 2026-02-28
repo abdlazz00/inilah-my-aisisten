@@ -36,12 +36,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [PersonaController::class, 'index'])->name('index');
         Route::post('/extract', [PersonaController::class, 'extract'])->name('extract');
         Route::post('/save', [PersonaController::class, 'save'])->name('save');
+        Route::delete('/{persona}', [PersonaController::class, 'destroy'])->name('destroy'); // <--- TAMBAHAN INI
     });
 
     // Route Whitelist / Contact Manager
     Route::prefix('contacts')->name('contacts.')->group(function () {
         Route::get('/', [ContactController::class, 'index'])->name('index');
         Route::post('/', [ContactController::class, 'store'])->name('store');
+        Route::put('/{contact}', [ContactController::class, 'update'])->name('update');
         Route::post('/{contact}/toggle', [ContactController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{contact}', [ContactController::class, 'destroy'])->name('destroy');
     });

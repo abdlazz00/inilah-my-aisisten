@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\Persona;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,7 +13,8 @@ class ContactController extends Controller
     public function index()
     {
         return Inertia::render('Contacts/ContactManager', [
-            'contacts' => Contact::orderBy('created_at', 'desc')->get()
+            'contacts' => Contact::with('persona')->latest()->get(),
+            'personas' => Persona::select('id', 'name')->get()
         ]);
     }
 
@@ -22,6 +24,7 @@ class ContactController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone_number' => 'required|string|unique:contacts,phone_number',
+            'persona_id' => 'nullable|exists:personas,id',
         ]);
 
         // Bersihkan nomor (hilangkan spasi, +, dll) agar seragam
@@ -35,6 +38,7 @@ class ContactController extends Controller
         Contact::create([
             'name' => $request->name,
             'phone_number' => $cleanPhone,
+            'persona_id' => $request->persona_id,
             'is_active' => true,
         ]);
 
@@ -53,5 +57,22 @@ class ContactController extends Controller
     {
         $contact->delete();
         return back()->with('success', 'Kontak berhasil dihapus!');
+    }
+
+    public function update(Request $request, Contact $contact)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'persona_id' => 'nullable|exists:personas,id'
+        ]);
+
+        $contact->update([
+            'name' => $request->name,
+            'phone_number' => $request->phone_number,
+            'persona_id' => $request->persona_id,
+        ]);
+
+        return back()->with('success', 'Kontak berhasil diupdate!');
     }
 }

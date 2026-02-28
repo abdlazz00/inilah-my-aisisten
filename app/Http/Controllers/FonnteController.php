@@ -51,19 +51,30 @@ class FonnteController extends Controller
         }
 
         // 3. Ambil Persona yang sedang aktif
-        $activePersona = Persona::where('is_active', true)->first();
-        if (!$activePersona) {
-            Log::warning("❌ DITOLAK: Tidak ada persona AI yang aktif");
+        $targetPersona = null;
+
+        // Cek apakah kontak ini punya persona khusus
+        if ($contact->persona_id != null) {
+            $targetPersona = $contact->persona;
+            Log::info("🎭 Menggunakan Persona KHUSUS untuk {$contact->name}: {$targetPersona->name}");
+        } else {
+            // Jika tidak ada, pakai persona global yang sedang aktif
+            $targetPersona = Persona::where('is_active', true)->first();
+            Log::info("🌍 Menggunakan Persona GLOBAL untuk {$contact->name}");
+        }
+
+        if (!$targetPersona) {
+            Log::warning("❌ DITOLAK: Tidak ada persona (Khusus/Global) yang bisa digunakan");
             return response()->json(['status' => 'error', 'reason' => 'No active persona']);
         }
 
         try {
             Log::info("✅ DIPROSES: Meminta balasan dari Groq AI untuk {$contact->name}...");
 
-            // 4. Minta AI membuat balasan
-            $chatHistory = []; // MVP: Kosongkan history obrolan sebelumnya
+            // 4. Minta AI membuat balasan (Gunakan $targetPersona->system_prompt)
+            $chatHistory = [];
             $replyMessage = $aiAction->execute(
-                $activePersona->system_prompt,
+                $targetPersona->system_prompt, // <--- PENTING: Ganti jadi $targetPersona
                 $contact->name,
                 $chatHistory,
                 $message
