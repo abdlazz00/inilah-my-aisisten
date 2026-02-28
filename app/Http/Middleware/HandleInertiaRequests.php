@@ -35,7 +35,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
 
-            'flash' => [
+            'flash' => fn () => [
                 'generated_prompt' => $request->session()->get('generated_prompt'),
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

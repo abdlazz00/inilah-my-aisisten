@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import axios from 'axios';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -10,37 +11,45 @@ import { Switch } from '@/Components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 
 export default function PersonaBuilder({ activePersona, personas }) {
+    // State untuk Form Upload & Extract
     const [file, setFile] = useState(null);
     const [targetName, setTargetName] = useState('Abdul Aziz');
     const [systemPrompt, setSystemPrompt] = useState(activePersona?.system_prompt || '');
     const [isLoading, setIsLoading] = useState(false);
 
+    // State untuk Form Penyimpanan ke Database
     const [personaName, setPersonaName] = useState('');
     const [isGlobal, setIsGlobal] = useState(false);
 
-    const handleExtract = (e) => {
+    // Fungsi Extract memakai Axios (Bypass Inertia agar text 100% muncul)
+    const handleExtract = async (e) => {
         e.preventDefault();
         if (!file || !targetName) return alert('Pilih file dan isi nama target dulu!');
+
         setIsLoading(true);
 
-        router.post('/personas/extract', {
-            chat_file: file,
-            target_name: targetName,
-        }, {
-            forceFormData: true,
-            onSuccess: (page) => {
-                if (page.props.flash?.generated_prompt) {
-                    setSystemPrompt(page.props.flash.generated_prompt);
-                }
-                setIsLoading(false);
-            },
-            onError: () => {
-                alert('Gagal mengekstrak chat. Pastikan formatnya benar dan API Key valid.');
-                setIsLoading(false);
+        const formData = new FormData();
+        formData.append('chat_file', file);
+        formData.append('target_name', targetName);
+
+        try {
+            const response = await axios.post('/personas/extract', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            // Masukkan data balasan langsung ke dalam kotak teks
+            if (response.data.generated_prompt) {
+                setSystemPrompt(response.data.generated_prompt);
             }
-        });
+        } catch (error) {
+            const errorMsg = error.response?.data?.message || error.message;
+            alert('Gagal mengekstrak: ' + errorMsg);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
+    // Fungsi untuk menyimpan System Prompt ke tabel personas
     const handleSavePrompt = () => {
         if (!personaName) return alert('Tuliskan Nama Persona terlebih dahulu!');
         if (!systemPrompt) return alert('System prompt masih kosong!');
@@ -52,14 +61,12 @@ export default function PersonaBuilder({ activePersona, personas }) {
         }, {
             onSuccess: () => {
                 alert('✅ Persona berhasil disimpan ke Database!');
-                setPersonaName('');
-                // Opsional: kosongkan form setelah save
-                setSystemPrompt('');
+                setPersonaName(''); // Kosongkan nama setelah sukses
             }
         });
     };
 
-    // TAMBAHAN: Fungsi hapus persona
+    // Fungsi untuk menghapus persona dari database
     const deletePersona = (id) => {
         if (confirm('Yakin ingin menghapus persona ini? Kontak yang memakainya akan otomatis kembali ke Persona Global.')) {
             router.delete(`/personas/${id}`, { preserveScroll: true });
@@ -86,12 +93,22 @@ export default function PersonaBuilder({ activePersona, personas }) {
                             <form onSubmit={handleExtract} className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="targetName">Nama Kamu di Chat</Label>
-                                    <Input id="targetName" value={targetName} onChange={(e) => setTargetName(e.target.value)} placeholder="Contoh: Abdul Aziz" />
+                                    <Input
+                                        id="targetName"
+                                        value={targetName}
+                                        onChange={(e) => setTargetName(e.target.value)}
+                                        placeholder="Contoh: Abdul Aziz"
+                                    />
                                     <p className="text-xs text-muted-foreground">Sistem akan mengambil pesan milik nama ini saja.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="chatFile">File .txt Chat</Label>
-                                    <Input id="chatFile" type="file" accept=".txt" onChange={(e) => setFile(e.target.files[0])} />
+                                    <Input
+                                        id="chatFile"
+                                        type="file"
+                                        accept=".txt"
+                                        onChange={(e) => setFile(e.target.files[0])}
+                                    />
                                 </div>
                                 <Button type="submit" disabled={isLoading} className="w-full">
                                     {isLoading ? 'Menganalisis Gaya Bahasa...' : 'Extract & Generate AI Prompt'}
@@ -100,7 +117,7 @@ export default function PersonaBuilder({ activePersona, personas }) {
                         </CardContent>
                     </Card>
 
-                    {/* Kolom Kanan: Hasil Prompt */}
+                    {/* Kolom Kanan: Hasil Prompt & Form Simpan */}
                     <Card>
                         <CardHeader>
                             <CardTitle>2. System Prompt (The Brain)</CardTitle>
@@ -125,10 +142,19 @@ export default function PersonaBuilder({ activePersona, personas }) {
                                     />
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <Switch id="is-global" checked={isGlobal} onCheckedChange={setIsGlobal} />
+                                    <Switch
+                                        id="is-global"
+                                        checked={isGlobal}
+                                        onCheckedChange={setIsGlobal}
+                                    />
                                     <Label htmlFor="is-global">Jadikan Persona Global (Default untuk semua kontak)</Label>
                                 </div>
-                                <Button variant="secondary" className="w-full" onClick={handleSavePrompt} disabled={!systemPrompt}>
+                                <Button
+                                    variant="secondary"
+                                    className="w-full"
+                                    onClick={handleSavePrompt}
+                                    disabled={!systemPrompt}
+                                >
                                     Simpan ke Database
                                 </Button>
                             </div>
@@ -136,7 +162,7 @@ export default function PersonaBuilder({ activePersona, personas }) {
                     </Card>
                 </div>
 
-                {/* TAMBAHAN: Tabel Daftar Persona */}
+                {/* Bagian Bawah: Tabel Daftar Persona */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Daftar Persona Tersimpan</CardTitle>
@@ -154,7 +180,9 @@ export default function PersonaBuilder({ activePersona, personas }) {
                             <TableBody>
                                 {!personas || personas.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center text-muted-foreground">Belum ada persona yang tersimpan.</TableCell>
+                                        <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                            Belum ada persona yang tersimpan.
+                                        </TableCell>
                                     </TableRow>
                                 ) : (
                                     personas.map((p) => (
@@ -172,7 +200,11 @@ export default function PersonaBuilder({ activePersona, personas }) {
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Button variant="destructive" size="sm" onClick={() => deletePersona(p.id)}>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => deletePersona(p.id)}
+                                                >
                                                     Hapus
                                                 </Button>
                                             </TableCell>

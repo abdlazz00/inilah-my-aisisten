@@ -32,17 +32,19 @@ class PersonaController extends Controller
             $chatHistory = $extractAction->execute($request->file('chat_file'), $request->target_name);
 
             if (empty(trim($chatHistory))) {
-                return back()->withErrors(['chat_file' => 'Tidak ada pesan yang cocok dengan nama tersebut di dalam file.']);
+                return response()->json(['message' => 'Tidak ada pesan yang cocok dengan nama tersebut di dalam file.'], 422);
             }
 
-            // Step B: Kirim teks hasil ekstrak ke OpenAI
+            // Step B: Kirim teks hasil ekstrak ke Groq AI
             $generatedPrompt = $generateAction->execute($chatHistory, $request->target_name);
 
-            // Step C: Kembalikan hasilnya ke React UI lewat Inertia Flash Session
-            return back()->with('generated_prompt', $generatedPrompt);
+            // Step C: Lempar balik langsung sebagai JSON (Bypass Inertia)
+            return response()->json([
+                'generated_prompt' => $generatedPrompt
+            ]);
 
         } catch (\Exception $e) {
-            return back()->withErrors(['chat_file' => 'Gagal memproses AI: ' . $e->getMessage()]);
+            return response()->json(['message' => 'Gagal memproses AI: ' . $e->getMessage()], 500);
         }
     }
 
