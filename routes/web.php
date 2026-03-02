@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FonnteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PersonaController; // Import Controller Persona kita
+use App\Http\Controllers\SettingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -46,6 +47,12 @@ Route::middleware('auth')->group(function () {
         Route::put('/{contact}', [ContactController::class, 'update'])->name('update');
         Route::post('/{contact}/toggle', [ContactController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{contact}', [ContactController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('index');
+        Route::post('/', [SettingController::class, 'update'])->name('update');
+        // Catatan: Route toggleAi yang lama (kalau ada) biarkan saja atau pindahkan ke sini
     });
 
     // (Nanti Route untuk Contacts / Whitelist kita taruh di bawah sini juga)

@@ -14,15 +14,11 @@ class FonnteController extends Controller
 {
     public function webhook(Request $request, GenerateChatReplyAction $aiAction)
     {
-        // Tangkap data dari Fonnte
         $sender = $request->sender;
         $message = $request->message;
 
-        // CCTV 1: Catat pesan yang masuk
         Log::info("📨 CHAT MASUK DARI: {$sender} | PESAN: {$message}");
 
-        // --- FITUR ADMIN COMMAND ---
-        // Jika ada yang ketik !ai off atau !ai on (biasanya kamu sendiri)
         if (strtolower(trim($message)) === '!ai off') {
             Setting::updateOrCreate(['key' => 'ai_status'], ['value' => 'off']);
             $this->sendFonnte($sender, "🤖 [Sistem] Inilah My AIsisten: DIMATIKAN!");
@@ -34,14 +30,12 @@ class FonnteController extends Controller
             return response()->json(['status' => 'success', 'reason' => 'AI turned on']);
         }
 
-        // 1. Cek Saklar Global AI (Apakah sedang ON?)
         $aiStatus = Setting::where('key', 'ai_status')->value('value');
         if ($aiStatus !== 'on') {
             Log::warning("❌ DITOLAK: AI Sedang Off di Dashboard");
             return response()->json(['status' => 'ignored', 'reason' => 'AI is turned off']);
         }
 
-        // 2. Cek Whitelist Kontak
         $cleanPhone = preg_replace('/[^0-9]/', '', $sender);
         $contact = Contact::where('phone_number', $cleanPhone)->where('is_active', true)->first();
 
@@ -105,8 +99,10 @@ class FonnteController extends Controller
     // Fungsi pembantu untuk mengirim pesan via Fonnte API
     private function sendFonnte($target, $message)
     {
+        $fonnteToken = Setting::where('key', 'fonnte_token')->value('value');
+
         $response = Http::withHeaders([
-            'Authorization' => env('FONNTE_TOKEN')
+            'Authorization' => $fonnteToken
         ])->post('https://api.fonnte.com/send', [
             'target' => $target,
             'message' => $message,

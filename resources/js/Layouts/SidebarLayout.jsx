@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Users, MessageSquareCode, Bot } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquareCode, Bot, Settings } from 'lucide-react'; // <--- TAMBAH IMPORT Settings
 
 export default function SidebarLayout({ children }) {
     const { url } = usePage();
@@ -9,6 +9,7 @@ export default function SidebarLayout({ children }) {
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Persona Builder', href: '/personas', icon: MessageSquareCode },
         { name: 'Whitelist Kontak', href: '/contacts', icon: Users },
+        { name: 'Pengaturan', href: '/settings', icon: Settings }, // <--- TAMBAHAN MENU PENGATURAN
     ];
 
     return (
