@@ -7,13 +7,21 @@ use App\Models\Setting;
 use App\Models\Contact;
 use App\Models\Persona;
 use App\Actions\AI\GenerateChatReplyAction;
+// TAMBAHAN: Import Action untuk Memori
+use App\Actions\Message\FetchRecentContextAction;
+use App\Actions\Message\SaveMessageContextAction;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class FonnteController extends Controller
 {
-    public function webhook(Request $request, GenerateChatReplyAction $aiAction)
-    {
+    // TAMBAHAN: Masukkan Fetch & Save Action ke dalam parameter webhook
+    public function webhook(
+        Request $request,
+        GenerateChatReplyAction $aiAction,
+        FetchRecentContextAction $fetchAction,
+        SaveMessageContextAction $saveAction
+    ) {
         $sender = $request->sender;
         $message = $request->message;
 
@@ -44,15 +52,12 @@ class FonnteController extends Controller
             return response()->json(['status' => 'ignored', 'reason' => 'Sender not in whitelist']);
         }
 
-        // 3. Ambil Persona yang sedang aktif
+        // Ambil Persona yang sedang aktif
         $targetPersona = null;
-
-        // Cek apakah kontak ini punya persona khusus
         if ($contact->persona_id != null) {
             $targetPersona = $contact->persona;
             Log::info("🎭 Menggunakan Persona KHUSUS untuk {$contact->name}: {$targetPersona->name}");
         } else {
-            // Jika tidak ada, pakai persona global yang sedang aktif
             $targetPersona = Persona::where('is_active', true)->first();
             Log::info("🌍 Menggunakan Persona GLOBAL untuk {$contact->name}");
         }
@@ -65,16 +70,20 @@ class FonnteController extends Controller
         try {
             Log::info("✅ DIPROSES: Meminta balasan dari Groq AI untuk {$contact->name}...");
 
-            // 4. Minta AI membuat balasan (Gunakan $targetPersona->system_prompt)
-            $chatHistory = [];
+            // 1. Ambil riwayat chat LAMA (Maksimal 8 chat terakhir) sebelum pesan baru ini masuk
+            $chatHistory = $fetchAction->execute($contact->id);
+
+            // 2. Simpan pesan masuk dari User ke database
+            $saveAction->execute($contact->id, 'user', $message);
+
+            // 3. Minta AI membuat balasan dengan menyertakan memori chat
             $replyMessage = $aiAction->execute(
-                $targetPersona->system_prompt, // <--- PENTING: Ganti jadi $targetPersona
+                $targetPersona->system_prompt,
                 $contact->name,
-                $chatHistory,
+                $chatHistory, // <--- Memori disuntikkan di sini
                 $message
             );
 
-            // CCTV 2: Catat apa yang mau diketik AI
             Log::info("🤖 ISI BALASAN GROQ: " . $replyMessage);
 
             if (empty(trim($replyMessage))) {
@@ -82,10 +91,12 @@ class FonnteController extends Controller
                 return response()->json(['status' => 'error', 'reason' => 'Empty reply from AI']);
             }
 
+            // 4. Simpan balasan AI ke database agar diingat untuk chat berikutnya
+            $saveAction->execute($contact->id, 'assistant', $replyMessage);
+
             // 5. Kirim balasan ke WA via Fonnte
             $fonnteResponse = $this->sendFonnte($sender, $replyMessage);
 
-            // CCTV 3: Catat jawaban dari server Fonnte
             Log::info("📡 RESPONSE FONNTE: " . $fonnteResponse);
 
             return response()->json(['status' => 'success']);
@@ -96,7 +107,6 @@ class FonnteController extends Controller
         }
     }
 
-    // Fungsi pembantu untuk mengirim pesan via Fonnte API
     private function sendFonnte($target, $message)
     {
         $fonnteToken = Setting::where('key', 'fonnte_token')->value('value');

@@ -60,6 +60,25 @@ class PersonaController extends Controller
         return back()->with('success', 'Persona berhasil disimpan!');
     }
 
+    public function update(Request $request, Persona $persona)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'system_prompt' => 'required|string',
+            'is_active' => 'required|boolean',
+        ]);
+
+        // Jika diset sebagai aktif (Global), matikan persona lain yang sedang aktif
+        if ($request->is_active) {
+            Persona::where('id', '!=', $persona->id)->update(['is_active' => false]);
+        }
+
+        // Simpan perubahan
+        $persona->update($request->only(['name', 'system_prompt', 'is_active']));
+
+        return back()->with('success', 'Persona berhasil diupdate!');
+    }
+
     public function destroy(Persona $persona)
     {
         $persona->delete();

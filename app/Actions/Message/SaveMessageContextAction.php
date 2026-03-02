@@ -7,7 +7,7 @@ use App\Models\Message;
 
 class SaveMessageContextAction
 {
-    public function execute(int $contactId, string $role, string $content): Message
+    public function execute(string $contactId, string $role, string $content): Message
     {
         return Message::create([
             'contact_id' => $contactId,

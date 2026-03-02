@@ -10,13 +10,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Halaman depan bawaan Breeze
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
     ]);
 });
 
@@ -37,6 +34,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [PersonaController::class, 'index'])->name('index');
         Route::post('/extract', [PersonaController::class, 'extract'])->name('extract');
         Route::post('/save', [PersonaController::class, 'save'])->name('save');
+        Route::put('/{persona}', [PersonaController::class, 'update'])->name('update');
         Route::delete('/{persona}', [PersonaController::class, 'destroy'])->name('destroy'); // <--- TAMBAHAN INI
     });
 
