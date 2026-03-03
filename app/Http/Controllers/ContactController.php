@@ -9,71 +9,65 @@ use Inertia\Inertia;
 
 class ContactController extends Controller
 {
-    // Menampilkan halaman dan daftar kontak
     public function index()
     {
+        $contacts = Contact::with('persona')->orderBy('created_at', 'desc')->get();
+        $personas = Persona::all();
         return Inertia::render('Contacts/ContactManager', [
-            'contacts' => Contact::with('persona')->latest()->get(),
-            'personas' => Persona::select('id', 'name')->get()
+            'contacts' => $contacts,
+            'personas' => $personas
         ]);
     }
 
-    // Menyimpan kontak baru ke database
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|unique:contacts,phone_number',
+            'phone_number' => 'required|string|max:50|unique:contacts',
             'persona_id' => 'nullable|exists:personas,id',
+            'is_group' => 'boolean'
         ]);
-
-        // Bersihkan nomor (hilangkan spasi, +, dll) agar seragam
-        $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone_number);
-
-        // Ubah 08 jadi 628 untuk standar Fonnte
-        if (str_starts_with($cleanPhone, '08')) {
-            $cleanPhone = '62' . substr($cleanPhone, 1);
-        }
 
         Contact::create([
-            'name' => $request->name,
-            'phone_number' => $cleanPhone,
-            'persona_id' => $request->persona_id,
+            'name' => $validated['name'],
+            'phone_number' => preg_replace('/[^0-9\-@.usg]/', '', $validated['phone_number']), // Support ID Grup Fonnte
+            'persona_id' => $validated['persona_id'] ?? null,
             'is_active' => true,
+            'is_group' => $request->is_group ?? false,
         ]);
 
-        return back()->with('success', 'Kontak berhasil ditambahkan!');
-    }
-
-    // Menghidupkan / Mematikan AI untuk kontak spesifik
-    public function toggleActive(Contact $contact)
-    {
-        $contact->update(['is_active' => !$contact->is_active]);
-        return back()->with('success', 'Status kontak diperbarui!');
-    }
-
-    // Menghapus kontak dari whitelist
-    public function destroy(Contact $contact)
-    {
-        $contact->delete();
-        return back()->with('success', 'Kontak berhasil dihapus!');
+        return back()->with('success', 'Kontak berhasil ditambahkan.');
     }
 
     public function update(Request $request, Contact $contact)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'persona_id' => 'nullable|exists:personas,id'
+            'phone_number' => 'required|string|max:50|unique:contacts,phone_number,' . $contact->id,
+            'persona_id' => 'nullable|exists:personas,id',
+            'is_group' => 'boolean'
         ]);
 
         $contact->update([
-            'name' => $request->name,
-            'phone_number' => $request->phone_number,
-            'persona_id' => $request->persona_id,
+            'name' => $validated['name'],
+            'phone_number' => preg_replace('/[^0-9\-@.usg]/', '', $validated['phone_number']),
+            'persona_id' => $validated['persona_id'] ?? null,
+            'is_group' => $request->is_group ?? false,
         ]);
 
-        return back()->with('success', 'Kontak berhasil diupdate!');
+        return back()->with('success', 'Kontak berhasil diupdate.');
+    }
+
+    public function destroy(Contact $contact)
+    {
+        $contact->delete();
+        return back()->with('success', 'Kontak berhasil dihapus.');
+    }
+
+    public function toggleActive(Contact $contact)
+    {
+        $contact->update(['is_active' => !$contact->is_active]);
+        return back()->with('success', 'Status kontak diperbarui.');
     }
 
     public function messages(Contact $contact)

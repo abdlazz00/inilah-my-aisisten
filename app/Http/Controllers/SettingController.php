@@ -10,8 +10,7 @@ class SettingController extends Controller
 {
     public function index()
     {
-        // Tambahkan memory_vault ke query
-        $settings = Setting::whereIn('key', ['groq_api_key', 'fonnte_token', 'owner_phone', 'memory_vault'])
+        $settings = Setting::whereIn('key', ['groq_api_key', 'fonnte_token', 'owner_phone', 'bot_phone', 'memory_vault'])
             ->pluck('value', 'key');
 
         return Inertia::render('Settings/Index', [
@@ -19,19 +18,20 @@ class SettingController extends Controller
                 'groq_api_key' => $settings['groq_api_key'] ?? '',
                 'fonnte_token' => $settings['fonnte_token'] ?? '',
                 'owner_phone' => $settings['owner_phone'] ?? '',
+                'bot_phone' => $settings['bot_phone'] ?? '', // <--- Setingan Baru
                 'memory_vault' => $settings['memory_vault'] ?? '',
             ]
         ]);
     }
 
-    // Menyimpan perubahan ke database
     public function update(Request $request)
     {
         $data = $request->validate([
             'groq_api_key' => 'nullable|string',
             'fonnte_token' => 'nullable|string',
             'owner_phone' => 'nullable|string',
-            'memory_vault' => 'nullable|string', // <--- Baris Baru Validasi
+            'bot_phone' => 'nullable|string', // <--- Validasi Baru
+            'memory_vault' => 'nullable|string',
         ]);
 
         foreach ($data as $key => $value) {
