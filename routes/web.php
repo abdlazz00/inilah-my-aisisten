@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ContactController::class, 'index'])->name('index');
         Route::post('/', [ContactController::class, 'store'])->name('store');
         Route::put('/{contact}', [ContactController::class, 'update'])->name('update');
+        Route::get('/{contact}/messages', [ContactController::class, 'messages'])->name('messages');
         Route::post('/{contact}/toggle', [ContactController::class, 'toggleActive'])->name('toggle');
         Route::delete('/{contact}', [ContactController::class, 'destroy'])->name('destroy');
     });

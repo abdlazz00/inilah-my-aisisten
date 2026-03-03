@@ -75,4 +75,10 @@ class ContactController extends Controller
 
         return back()->with('success', 'Kontak berhasil diupdate!');
     }
+
+    public function messages(Contact $contact)
+    {
+        $messages = $contact->messages()->orderBy('created_at', 'asc')->get();
+        return response()->json($messages);
+    }
 }

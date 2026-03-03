@@ -2,37 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Setting;
 use App\Models\Contact;
+use App\Models\Message;
 use App\Models\Persona;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    // Menampilkan halaman dashboard dan statistik
     public function index()
     {
-        // Ambil status AI (apakah 'on' atau 'off')
-        $aiStatus = Setting::where('key', 'ai_status')->value('value') === 'on';
+        // Ambil status AI saat ini
+        $aiStatus = Setting::where('key', 'ai_status')->value('value') ?? 'off';
 
-        // Hitung total kontak di whitelist
-        $totalContacts = Contact::count();
+        // Hitung statistik
+        $stats = [
+            'total_personas' => Persona::count(),
+            'total_contacts' => Contact::count(),
+            'total_messages' => Message::count(),
+            'ai_status' => $aiStatus === 'on'
+        ];
 
-        // Cek nama persona yang sedang dipakai
-        $activePersona = Persona::where('is_active', true)->first();
+        // Ambil 5 kontak terbaru yang dimasukkan ke whitelist
+        $recentContacts = Contact::with('persona')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
-        return Inertia::render('Dashboard/DashboardOverview', [
-            'isAiActive' => $aiStatus,
-            'totalContacts' => $totalContacts,
-            'activePersonaName' => $activePersona ? $activePersona->name : 'Belum Diatur',
+        return Inertia::render('Dashboard', [
+            'stats' => $stats,
+            'recentContacts' => $recentContacts,
         ]);
     }
 
-    // Fungsi untuk Saklar Induk (Toggle Global AI)
+    // Fungsi saklar Master Switch AI
     public function toggleAi(Request $request)
     {
-        $currentStatus = Setting::where('key', 'ai_status')->value('value');
+        $currentStatus = Setting::where('key', 'ai_status')->value('value') ?? 'off';
         $newStatus = $currentStatus === 'on' ? 'off' : 'on';
 
         Setting::updateOrCreate(
@@ -40,6 +47,6 @@ class DashboardController extends Controller
             ['value' => $newStatus]
         );
 
-        return back()->with('success', 'Status AI global diperbarui!');
+        return back()->with('success', "AI Status berhasil diubah menjadi " . strtoupper($newStatus));
     }
 }
