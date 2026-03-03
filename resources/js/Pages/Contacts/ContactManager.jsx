@@ -61,7 +61,7 @@ export default function ContactManager({ contacts, personas }) {
     };
 
     const toggleActive = (id) => {
-        router.post(`/contacts/${id}/toggle`);
+        router.post(`/contacts/${id}/toggle`, {}, { preserveScroll: true });
     };
 
     // --- FUNGSI SPY MODE (Buka Laci Chat) ---
@@ -214,10 +214,10 @@ export default function ContactManager({ contacts, personas }) {
                 {/* Panel Laci */}
                 <div className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[450px] bg-slate-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col ${isChatOpen ? 'translate-x-0' : 'translate-x-full'} border-l border-slate-200`}>
 
-                    {/* Header Laci */}
+                    {/* Header Laci + Smart Takeover Toggle */}
                     <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shadow-sm z-10">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold uppercase">
+                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold uppercase ring-2 ring-indigo-50 ring-offset-1">
                                 {selectedContact?.name?.charAt(0) || '?'}
                             </div>
                             <div>
@@ -225,9 +225,26 @@ export default function ContactManager({ contacts, personas }) {
                                 <p className="text-xs text-slate-500">{selectedContact?.phone_number}</p>
                             </div>
                         </div>
-                        <button onClick={closeChat} className="p-2 text-slate-400 hover:text-red-600 rounded-full hover:bg-slate-100 transition-colors">
-                            <X className="w-5 h-5" />
-                        </button>
+
+                        <div className="flex items-center gap-3">
+                            {/* TOMBOL SMART TAKEOVER */}
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-colors ${selectedContact?.is_active ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200'}`} title="Matikan jika ingin membalas manual dari HP">
+                                <span className={`text-[11px] font-bold uppercase tracking-wider ${selectedContact?.is_active ? 'text-green-700' : 'text-slate-500'}`}>
+                                    {selectedContact?.is_active ? 'AI: ON' : 'AI: OFF'}
+                                </span>
+                                <Switch
+                                    checked={selectedContact?.is_active}
+                                    onCheckedChange={() => {
+                                        toggleActive(selectedContact.id);
+                                        setSelectedContact({...selectedContact, is_active: !selectedContact.is_active});
+                                    }}
+                                />
+                            </div>
+
+                            <button onClick={closeChat} className="p-2 text-slate-400 hover:text-red-600 rounded-full hover:bg-slate-100 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Area Gelembung Chat */}

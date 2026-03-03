@@ -8,10 +8,10 @@ use Inertia\Inertia;
 
 class SettingController extends Controller
 {
-    //
     public function index()
     {
-        $settings = Setting::whereIn('key', ['groq_api_key', 'fonnte_token', 'owner_phone'])
+        // Tambahkan memory_vault ke query
+        $settings = Setting::whereIn('key', ['groq_api_key', 'fonnte_token', 'owner_phone', 'memory_vault'])
             ->pluck('value', 'key');
 
         return Inertia::render('Settings/Index', [
@@ -19,6 +19,7 @@ class SettingController extends Controller
                 'groq_api_key' => $settings['groq_api_key'] ?? '',
                 'fonnte_token' => $settings['fonnte_token'] ?? '',
                 'owner_phone' => $settings['owner_phone'] ?? '',
+                'memory_vault' => $settings['memory_vault'] ?? '',
             ]
         ]);
     }
@@ -30,6 +31,7 @@ class SettingController extends Controller
             'groq_api_key' => 'nullable|string',
             'fonnte_token' => 'nullable|string',
             'owner_phone' => 'nullable|string',
+            'memory_vault' => 'nullable|string', // <--- Baris Baru Validasi
         ]);
 
         foreach ($data as $key => $value) {
@@ -39,6 +41,6 @@ class SettingController extends Controller
             );
         }
 
-        return back()->with('success', 'Konfigurasi API berhasil disimpan!');
+        return back()->with('success', 'Pengaturan sistem berhasil disimpan!');
     }
 }

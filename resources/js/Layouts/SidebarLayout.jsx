@@ -27,7 +27,7 @@ export default function SidebarLayout({ children }) {
             <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
                 <div className="h-16 flex items-center px-6 border-b border-slate-200">
                     <Bot className="w-6 h-6 text-indigo-600 mr-2" />
-                    <span className="font-bold text-lg tracking-tight text-slate-900">My AIsisten</span>
+                    <span className="font-bold text-lg tracking-tight text-slate-900">Inilah My AIsisten</span>
                 </div>
 
                 <nav className="flex-1 p-4 overflow-y-auto">

@@ -1,16 +1,34 @@
+import { useState } from 'react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Switch } from '@/Components/ui/switch';
-import { Bot, Users, MessageSquareCode, MessageCircle, Activity, ArrowRight, Zap } from 'lucide-react';
+import { Bot, Users, MessageSquareCode, MessageCircle, Activity, ArrowRight, Zap, Sparkles } from 'lucide-react';
 
 export default function Dashboard({ auth, stats, recentContacts }) {
 
-    // Fungsi untuk menekan Master Switch AI
+    // State Laporan Ajudan
+    const [summary, setSummary] = useState('');
+    const [isSummarizing, setIsSummarizing] = useState(false);
+
     const toggleAi = () => {
         router.post('/settings/toggle-ai', {}, { preserveScroll: true });
-    }
+    };
+
+    // Fungsi panggil AI perangkum
+    const generateSummary = async () => {
+        setIsSummarizing(true);
+        try {
+            const response = await axios.get('/dashboard/summarize');
+            setSummary(response.data.summary);
+        } catch (error) {
+            setSummary('Gagal mengambil laporan dari server. Cek koneksi API.');
+        } finally {
+            setIsSummarizing(false);
+        }
+    };
 
     return (
         <SidebarLayout>
@@ -52,7 +70,7 @@ export default function Dashboard({ auth, stats, recentContacts }) {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-slate-900">
-                                {stats?.ai_status ? 'ON / Aktif' : 'OFF / Mati'}
+                                {stats?.ai_status ? 'Aktif' : 'Nonaktif'}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                                 {stats?.ai_status ? 'Siap membalas WhatsApp' : 'Tidak ada balasan otomatis'}
@@ -128,20 +146,10 @@ export default function Dashboard({ auth, stats, recentContacts }) {
                                                 <span className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-medium uppercase tracking-wider ${contact.is_active ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' : 'bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/10'}`}>
                                                     {contact.is_active ? 'AI Aktif' : 'AI Mati'}
                                                 </span>
-                                                <p className="text-[11px] font-medium text-indigo-400 mt-1 max-w-[120px] truncate" title={contact.persona?.name || 'Global Persona'}>
-                                                    🎭 {contact.persona?.name || 'Global Persona'}
-                                                </p>
                                             </div>
                                         </div>
                                     ))
                                 )}
-                            </div>
-                            <div className="mt-6">
-                                <Link href={route('contacts.index')}>
-                                    <Button variant="outline" className="w-full text-slate-700 bg-slate-50 hover:bg-slate-100">
-                                        Kelola Semua Kontak <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </Link>
                             </div>
                         </CardContent>
                     </Card>
@@ -150,24 +158,9 @@ export default function Dashboard({ auth, stats, recentContacts }) {
                     <Card className="lg:col-span-3 border-slate-100 shadow-sm">
                         <CardHeader>
                             <CardTitle className="text-lg">Tindakan Cepat</CardTitle>
-                            <CardDescription>Jalan pintas untuk mengelola asisten Anda.</CardDescription>
+                            <CardDescription>Jalan pintas mengelola asisten Anda.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <Link href={route('personas.index')} className="block">
-                                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all group flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg group-hover:scale-110 transition-transform">
-                                            <MessageSquareCode className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-slate-900">Latih Persona Baru</h3>
-                                            <p className="text-xs text-slate-500 mt-0.5">Buat gaya bahasa AI baru</p>
-                                        </div>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
-                                </div>
-                            </Link>
-
                             <Link href={route('contacts.index')} className="block">
                                 <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -175,15 +168,14 @@ export default function Dashboard({ auth, stats, recentContacts }) {
                                             <Users className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-slate-900">Tambah Whitelist</h3>
-                                            <p className="text-xs text-slate-500 mt-0.5">Izinkan kontak baru di WA</p>
+                                            <h3 className="font-semibold text-slate-900">Ke Whitelist Kontak</h3>
+                                            <p className="text-xs text-slate-500 mt-0.5">Izinkan kontak & intip Spy Mode</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 transition-colors" />
                                 </div>
                             </Link>
 
-                            {/* Banner Keren */}
                             <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden shadow-lg border border-slate-700">
                                 <Zap className="w-32 h-32 absolute -right-6 -bottom-6 text-white opacity-5" />
                                 <div className="relative z-10 flex items-center gap-2 mb-2">
@@ -192,12 +184,56 @@ export default function Dashboard({ auth, stats, recentContacts }) {
                                 </div>
                                 <h4 className="font-bold text-lg relative z-10">Asisten Siap Tempur!</h4>
                                 <p className="text-sm text-slate-400 mt-2 relative z-10 leading-relaxed">
-                                    Groq AI dan Fonnte webhook sudah terhubung. Biarkan My AIsisten yang membalas pesan saat Anda sibuk.
+                                    Biarkan My AIsisten yang membalas pesan saat Anda sibuk.
                                 </p>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* ============================================================== */}
+                {/* FITUR BARU: LAPORAN AJUDAN */}
+                {/* ============================================================== */}
+                <Card className="border-indigo-100 shadow-sm bg-indigo-50/30 overflow-hidden">
+                    <CardHeader className="bg-white border-b border-indigo-50 pb-4">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <CardTitle className="flex items-center text-lg text-indigo-900">
+                                    <Sparkles className="w-5 h-5 mr-2 text-indigo-600" />
+                                    Summary Hari Ini
+                                </CardTitle>
+                                <CardDescription className="mt-1">
+                                    Malas baca log Spy Mode satu per satu? Biar AI yang merangkum semua obrolanmu hari ini.
+                                </CardDescription>
+                            </div>
+                            <Button
+                                onClick={generateSummary}
+                                disabled={isSummarizing}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
+                            >
+                                {isSummarizing ? (
+                                    <><span className="animate-pulse mr-2">⏳</span> Menyusun Laporan...</>
+                                ) : (
+                                    <><Bot className="w-4 h-4 mr-2" /> Buat Laporan Hari Ini</>
+                                )}
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        {summary ? (
+                            <div className="p-5 bg-white border border-indigo-100 rounded-xl text-sm leading-relaxed whitespace-pre-wrap font-medium text-slate-700 shadow-sm">
+                                {summary}
+                            </div>
+                        ) : (
+                            <div className="py-8 text-center border-2 border-dashed border-indigo-200 rounded-xl bg-white">
+                                <Bot className="w-10 h-10 text-indigo-300 mx-auto mb-3 opacity-50" />
+                                <p className="text-slate-500 font-medium">Laporan belum di-generate.</p>
+                                <p className="text-xs text-slate-400 mt-1">Klik tombol di atas untuk mendapatkan rangkuman obrolan hari ini.</p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
             </div>
         </SidebarLayout>
     );

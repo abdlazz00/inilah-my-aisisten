@@ -8,15 +8,15 @@ use App\Models\Persona;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
+use App\Actions\AI\SummarizeDailyChatsAction;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Ambil status AI saat ini
         $aiStatus = Setting::where('key', 'ai_status')->value('value') ?? 'off';
 
-        // Hitung statistik
         $stats = [
             'total_personas' => Persona::count(),
             'total_contacts' => Contact::count(),
@@ -24,7 +24,6 @@ class DashboardController extends Controller
             'ai_status' => $aiStatus === 'on'
         ];
 
-        // Ambil 5 kontak terbaru yang dimasukkan ke whitelist
         $recentContacts = Contact::with('persona')
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -36,7 +35,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    // Fungsi saklar Master Switch AI
     public function toggleAi(Request $request)
     {
         $currentStatus = Setting::where('key', 'ai_status')->value('value') ?? 'off';
@@ -48,5 +46,41 @@ class DashboardController extends Controller
         );
 
         return back()->with('success', "AI Status berhasil diubah menjadi " . strtoupper($newStatus));
+    }
+
+    // FUNGSI BARU: BIKIN LAPORAN AJUDAN
+    public function summarize(SummarizeDailyChatsAction $summarizer)
+    {
+        $today = Carbon::today();
+        // Ambil semua pesan hari ini
+        $messages = Message::with('contact')
+            ->whereDate('created_at', $today)
+            ->orderBy('contact_id')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        if ($messages->isEmpty()) {
+            return response()->json(['summary' => 'Belum ada obrolan masuk maupun keluar hari ini, Bos!']);
+        }
+
+        // Rakit pesan agar rapi dibaca AI
+        $chatLog = "";
+        $currentContact = "";
+        foreach ($messages as $msg) {
+            $contactName = $msg->contact->name ?? 'Unknown';
+            if ($currentContact !== $contactName) {
+                $chatLog .= "\n--- Obrolan dengan {$contactName} ---\n";
+                $currentContact = $contactName;
+            }
+            $role = $msg->role === 'assistant' ? 'AI' : $contactName;
+            $chatLog .= "[{$msg->created_at->format('H:i')}] {$role}: {$msg->content}\n";
+        }
+
+        try {
+            $summary = $summarizer->execute($chatLog);
+            return response()->json(['summary' => $summary]);
+        } catch (\Exception $e) {
+            return response()->json(['summary' => 'Waduh, gagal bikin rangkuman nih: ' . $e->getMessage()], 500);
+        }
     }
 }
