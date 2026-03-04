@@ -11,7 +11,7 @@ export default function Welcome({ auth }) {
                 <nav className="flex items-center justify-between px-6 py-4 md:px-12 border-b border-slate-200 bg-white/60 backdrop-blur-md sticky top-0 z-50">
                     <div className="flex items-center gap-2 text-indigo-600">
                         <Bot className="w-8 h-8" />
-                        <span className="text-xl font-bold tracking-tight">My AIsisten</span>
+                        <span className="text-xl font-bold tracking-tight">Inilah My AIsisten</span>
                     </div>
                     <div>
                         {auth.user ? (
@@ -19,11 +19,11 @@ export default function Welcome({ auth }) {
                                 Ke Dashboard
                             </Link>
                         ) : (
-                            <div className="space-x-4 flex items-center">
-                                <Link href={route('login')} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors hidden sm:inline-block">
+                            <div className="space-x-2 flex items-center">
+                                <Link href={route('login')} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-indigo-600 h-9 px-3 md:px-4 py-2 shadow-sm">
                                     Log in
                                 </Link>
-                                <Link href={route('register')} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-indigo-600 text-white hover:bg-indigo-700 h-9 px-4 py-2 shadow-sm">
+                                <Link href={route('register')} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-indigo-600 text-white hover:bg-indigo-700 h-9 px-3 md:px-4 py-2 shadow-sm">
                                     Daftar Gratis
                                 </Link>
                             </div>
@@ -110,8 +110,7 @@ export default function Welcome({ auth }) {
                         <Bot className="w-6 h-6" />
                         <span className="text-xl font-bold tracking-tight">My AIsisten</span>
                     </div>
-                    <p className="text-sm">© {new Date().getFullYear()} My AIsisten. All rights reserved.</p>
-                    <p className="text-xs mt-2 text-slate-500">Dibuat dengan ❤️ di Batam</p>
+                    <p className="text-sm">© {new Date().getFullYear()} Inilah My AIsisten. All rights reserved.</p>
                 </footer>
             </div>
         </>
