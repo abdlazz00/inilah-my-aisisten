@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { Bot, MessageSquare, Users, Zap, Shield, ChevronRight } from 'lucide-react';
+import { Bot, MessageSquare, Users, Zap, Shield, ChevronRight, Brain, Clock, Smartphone } from 'lucide-react';
 
 export default function Welcome({ auth }) {
     return (
@@ -70,17 +70,17 @@ export default function Welcome({ auth }) {
                     <div className="max-w-6xl mx-auto px-6 md:px-12">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl font-bold tracking-tight text-slate-900">Fitur Unggulan</h2>
-                            <p className="mt-4 text-lg text-slate-500">Semua yang Anda butuhkan untuk membangun asisten AI idaman.</p>
+                            <p className="mt-4 text-lg text-slate-500">Semua yang Anda butuhkan untuk membangun asisten AI idaman yang natural.</p>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-8">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {/* Feature 1 */}
                             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-lg hover:border-indigo-100">
                                 <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-6">
                                     <MessageSquare className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 text-slate-900">Persona Builder</h3>
-                                <p className="text-slate-600 leading-relaxed">Ekstrak gaya bahasa Anda dari riwayat chat WhatsApp. AI akan membalas dengan kosakata, logat, dan candaan persis seperti Anda.</p>
+                                <p className="text-slate-600 leading-relaxed text-sm">Ekstrak gaya bahasa Anda dari riwayat chat. AI akan membalas dengan kosakata, logat, dan candaan persis seperti Anda.</p>
                             </div>
 
                             {/* Feature 2 */}
@@ -89,16 +89,34 @@ export default function Welcome({ auth }) {
                                     <Shield className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 text-slate-900">Whitelist Kontak</h3>
-                                <p className="text-slate-600 leading-relaxed">Aman dari spam. AI hanya akan bekerja dan merespons nomor-nomor khusus yang sudah Anda setujui ke dalam daftar putih.</p>
+                                <p className="text-slate-600 leading-relaxed text-sm">Aman dari spam. AI hanya akan merespons pesan dari nomor-nomor khusus yang sudah Anda setujui di dalam daftar putih.</p>
                             </div>
 
                             {/* Feature 3 */}
                             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-lg hover:border-indigo-100">
                                 <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-6">
+                                    <Brain className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-3 text-slate-900">Ingatan Konteks</h3>
+                                <p className="text-slate-600 leading-relaxed text-sm">AI tidak hanya membalas pesan terakhir, tapi mampu mengingat histori obrolan sebelumnya agar percakapan tetap nyambung.</p>
+                            </div>
+
+                            {/* Feature 4 */}
+                            <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-lg hover:border-indigo-100">
+                                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-6">
+                                    <Clock className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-3 text-slate-900">Jeda Acak</h3>
+                                <p className="text-slate-600 leading-relaxed text-sm">Bebas dari kesan "bot murahan". Tersedia simulasi jeda mengetik dan membaca agar balasan terasa dikirim langsung oleh manusia.</p>
+                            </div>
+
+                            {/* Feature 5 */}
+                            <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-lg hover:border-indigo-100">
+                                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-6">
                                     <Users className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-3 text-slate-900">Multi-Persona</h3>
-                                <p className="text-slate-600 leading-relaxed">Satu nomor, ragam kepribadian. Gunakan gaya formal untuk klien, dan gaya santai untuk teman. Atur secara spesifik per kontak.</p>
+                                <p className="text-slate-600 leading-relaxed text-sm">Gunakan gaya formal untuk klien bisnis, dan gaya santai untuk teman. Atur secara spesifik untuk masing-masing kontak.</p>
                             </div>
                         </div>
                     </div>

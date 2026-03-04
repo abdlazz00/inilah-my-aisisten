@@ -4,7 +4,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FonnteController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PersonaController; // Import Controller Persona kita
+use App\Http\Controllers\PersonaController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +17,10 @@ Route::get('/', function () {
     ]);
 });
 
+// Route untuk Halaman Panduan (Bisa diakses kalau sudah login)
+Route::get('/docs', function () {
+    return Inertia::render('Documentation');
+})->middleware(['auth', 'verified'])->name('docs');
 
 // Semua Route yang wajib Login dulu baru bisa diakses
 Route::middleware('auth')->group(function () {
@@ -36,7 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/extract', [PersonaController::class, 'extract'])->name('extract');
         Route::post('/save', [PersonaController::class, 'save'])->name('save');
         Route::put('/{persona}', [PersonaController::class, 'update'])->name('update');
-        Route::delete('/{persona}', [PersonaController::class, 'destroy'])->name('destroy'); // <--- TAMBAHAN INI
+        Route::delete('/{persona}', [PersonaController::class, 'destroy'])->name('destroy');
     });
 
     // Route Whitelist / Contact Manager
@@ -49,14 +53,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{contact}', [ContactController::class, 'destroy'])->name('destroy');
     });
 
+    // Route Settings / Konfigurasi
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('index');
         Route::post('/', [SettingController::class, 'update'])->name('update');
-        // Catatan: Route toggleAi yang lama (kalau ada) biarkan saja atau pindahkan ke sini
     });
-
-    // (Nanti Route untuk Contacts / Whitelist kita taruh di bawah sini juga)
 });
 
 require __DIR__.'/auth.php';
+
+// Route Webhook Fonnte (Tanpa Auth Middleware agar Fonnte bisa nembak bebas)
 Route::post('/api/fonnte', [FonnteController::class, 'webhook']);

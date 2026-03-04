@@ -1,16 +1,14 @@
-// abdlazz00/inilah-my-aisisten/inilah-my-aisisten-9404085dbc41017fe6b81e2296df251b30b802f2/resources/js/Layouts/SidebarLayout.jsx
+// resources/js/Layouts/SidebarLayout.jsx
 import { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Users, MessageSquareCode, Bot, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquareCode, Bot, Settings, LogOut, BookOpen, UsersIcon } from 'lucide-react';
 
 export default function SidebarLayout({ children }) {
     const { url, props } = usePage();
     const { auth } = props;
 
-    // State untuk memunculkan sub-menu "Pengaturan" di mobile
     const [showMobileSettings, setShowMobileSettings] = useState(false);
 
-    // Menu navigasi dengan fitur Sub-menu
     const navItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Persona Builder', href: '/personas', icon: MessageSquareCode },
@@ -19,8 +17,9 @@ export default function SidebarLayout({ children }) {
             name: 'Pengaturan',
             icon: Settings,
             subItems: [
-                { name: 'Profile Akun', href: '/profile' },
-                { name: 'Konfigurasi Sistem', href: '/settings' },
+                { name: 'Profile Akun', href: '/profile', icon: UsersIcon },
+                { name: 'Konfigurasi Sistem', href: '/settings', icon: Settings },
+                { name: 'Panduan', href: '/docs', icon: BookOpen },
             ]
         },
     ];
@@ -48,7 +47,7 @@ export default function SidebarLayout({ children }) {
             <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col z-20">
                 <div className="h-16 flex items-center px-6 border-b border-slate-200">
                     <Bot className="w-6 h-6 text-indigo-600 mr-2" />
-                    <span className="font-bold text-lg tracking-tight text-slate-900">Inilah My AIsisten</span>
+                    <span className="font-bold text-lg tracking-tight text-slate-900">My AIsisten</span>
                 </div>
 
                 <nav className="flex-1 p-4 overflow-y-auto">
@@ -121,7 +120,6 @@ export default function SidebarLayout({ children }) {
             {/* =========================================
                 3. MAIN CONTENT
             ========================================= */}
-            {/* mt-14 mb-16 adalah ruang untuk header dan nav bawah di mobile */}
             <main className="flex-1 overflow-y-auto mt-14 mb-16 md:mt-0 md:mb-0">
                 <div className="p-4 md:p-8">
                     {children}
@@ -131,7 +129,6 @@ export default function SidebarLayout({ children }) {
             {/* =========================================
                 4. MOBILE SUB-MENU POPUP (PENGATURAN)
             ========================================= */}
-            {/* Background hitam transparan saat popup muncul */}
             {showMobileSettings && (
                 <div
                     className="md:hidden fixed inset-0 bg-slate-900/20 z-30 transition-opacity"
@@ -139,7 +136,6 @@ export default function SidebarLayout({ children }) {
                 />
             )}
 
-            {/* Modal popup-nya */}
             {showMobileSettings && (
                 <div className="md:hidden fixed bottom-16 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)] z-40 rounded-t-xl transition-all duration-300 ease-in-out">
                     <div className="p-3 space-y-1">
@@ -175,7 +171,6 @@ export default function SidebarLayout({ children }) {
                 {navItems.map((item) => {
                     const Icon = item.icon;
 
-                    // Kalau menu punya Sub-Menu (Pengaturan)
                     if (item.subItems) {
                         const isParentActive = item.subItems.some(sub => url.startsWith(sub.href));
                         return (
@@ -192,7 +187,6 @@ export default function SidebarLayout({ children }) {
                         );
                     }
 
-                    // Menu biasa
                     const isActive = url.startsWith(item.href);
                     return (
                         <Link
