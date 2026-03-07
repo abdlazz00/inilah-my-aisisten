@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -8,11 +8,14 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Save, BrainCircuit } from 'lucide-react';
 
 export default function SettingsIndex({ settings }) {
+    // Tangkap webhook_url dari props (Inertia otomatis mengirimnya dari SettingController)
+    const { webhook_url } = usePage().props;
+
     const { data, setData, post, processing } = useForm({
         groq_api_key: settings.groq_api_key || '',
         fonnte_token: settings.fonnte_token || '',
         owner_phone: settings.owner_phone || '',
-        bot_phone: settings.bot_phone || '', // <--- State Baru
+        bot_phone: settings.bot_phone || '',
         memory_vault: settings.memory_vault || '',
     });
 
@@ -28,6 +31,17 @@ export default function SettingsIndex({ settings }) {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Konfigurasi Sistem</h1>
                     <p className="text-muted-foreground">Kelola API Key, Token, dan Basis Pengetahuan (Memory) AI Anda.</p>
+                </div>
+
+                {/* 🌟 KOTAK INFO WEBHOOK URL 🌟 */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg shadow-sm">
+                    <h3 className="text-sm font-bold text-blue-800 mb-1">URL Webhook Fonnte Anda:</h3>
+                    <p className="text-xs text-blue-600 mb-2">Copy dan paste link di bawah ini ke dashboard Fonnte Anda (Menu API/Webhook).</p>
+                    <div className="flex items-center gap-2">
+                        <code className="flex-1 block p-3 bg-white rounded border border-blue-100 text-sm font-mono text-gray-800 select-all">
+                            {webhook_url}
+                        </code>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

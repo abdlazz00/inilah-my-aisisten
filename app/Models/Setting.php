@@ -8,5 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Setting extends Model
 {
     use HasUuids;
-    protected $fillable = ['key', 'value'];
+    protected $fillable = ['user_id', 'key', 'value'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

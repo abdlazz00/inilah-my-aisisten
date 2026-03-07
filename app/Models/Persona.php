@@ -9,7 +9,7 @@ class Persona extends Model
 {
     use HasUuids;
     //
-    protected $fillable = ['name', 'system_prompt', 'is_active'];
+    protected $fillable = ['name', 'system_prompt', 'is_active', 'user_id'];
 
     protected $casts = [
         'is_active' => 'boolean'
@@ -18,5 +18,10 @@ class Persona extends Model
     public function contacts()
     {
         return $this->hasMany(Contact::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

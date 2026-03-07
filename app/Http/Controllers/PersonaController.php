@@ -13,8 +13,8 @@ class PersonaController extends Controller
     public function index()
     {
         return Inertia::render('Personas/PersonaBuilder', [
-            'activePersona' => Persona::where('is_active', true)->first(),
-            'personas' => Persona::latest()->get()
+            'activePersona' => auth()->user()->personas()->where('is_active', true)->first(),
+            'personas' => auth()->user()->personas()->latest()->get()
         ]);
     }
 
@@ -45,43 +45,27 @@ class PersonaController extends Controller
 
     public function save(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'system_prompt' => 'required|string',
-            'is_active' => 'required|boolean',
-        ]);
+        $request->validate(['name' => 'required', 'system_prompt' => 'required', 'is_active' => 'required|boolean']);
+        if ($request->is_active) auth()->user()->personas()->where('is_active', true)->update(['is_active' => false]);
 
-        if ($request->is_active) {
-            Persona::where('is_active', true)->update(['is_active' => false]);
-        }
-
-        Persona::create($request->only(['name', 'system_prompt', 'is_active']));
-
+        auth()->user()->personas()->create($request->only(['name', 'system_prompt', 'is_active']));
         return back()->with('success', 'Persona berhasil disimpan!');
     }
 
     public function update(Request $request, Persona $persona)
     {
-        $request->validate([
-            'name' => 'required|string',
-            'system_prompt' => 'required|string',
-            'is_active' => 'required|boolean',
-        ]);
+        if ($persona->user_id !== auth()->id()) abort(403); // Keamanan Anti-Hack
+        $request->validate(['name' => 'required', 'system_prompt' => 'required', 'is_active' => 'required|boolean']);
 
-        // Jika diset sebagai aktif (Global), matikan persona lain yang sedang aktif
-        if ($request->is_active) {
-            Persona::where('id', '!=', $persona->id)->update(['is_active' => false]);
-        }
-
-        // Simpan perubahan
+        if ($request->is_active) auth()->user()->personas()->where('id', '!=', $persona->id)->update(['is_active' => false]);
         $persona->update($request->only(['name', 'system_prompt', 'is_active']));
-
-        return back()->with('success', 'Persona berhasil diupdate!');
+        return back()->with('success', 'Persona diupdate!');
     }
 
     public function destroy(Persona $persona)
     {
+        if ($persona->user_id !== auth()->id()) abort(403);
         $persona->delete();
-        return back()->with('success', 'Persona berhasil dihapus!');
+        return back()->with('success', 'Persona dihapus!');
     }
 }

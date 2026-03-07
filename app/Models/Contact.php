@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Contact extends Model
 {
     use HasUuids;
-    protected $fillable = ['name', 'phone_number','persona_id' ,'is_active','is_group' ,'last_interacted_at'];
+    protected $fillable = ['name', 'phone_number','persona_id','user_id' ,'is_active','is_group' ,'last_interacted_at'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -24,5 +24,10 @@ class Contact extends Model
     public function persona()
     {
         return $this->belongsTo(Persona::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

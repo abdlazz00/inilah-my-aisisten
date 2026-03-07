@@ -10,7 +10,8 @@ class SettingController extends Controller
 {
     public function index()
     {
-        $settings = Setting::whereIn('key', ['groq_api_key', 'fonnte_token', 'owner_phone', 'bot_phone', 'memory_vault'])
+        $settings = auth()->user()->settings()
+            ->whereIn('key', ['groq_api_key', 'fonnte_token', 'owner_phone', 'bot_phone', 'memory_vault'])
             ->pluck('value', 'key');
 
         return Inertia::render('Settings/Index', [
@@ -20,7 +21,8 @@ class SettingController extends Controller
                 'owner_phone' => $settings['owner_phone'] ?? '',
                 'bot_phone' => $settings['bot_phone'] ?? '', // <--- Setingan Baru
                 'memory_vault' => $settings['memory_vault'] ?? '',
-            ]
+            ],
+            'webhook_url' => url('/api/fonnte/' . auth()->id())
         ]);
     }
 

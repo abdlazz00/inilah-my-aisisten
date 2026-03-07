@@ -63,4 +63,5 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 // Route Webhook Fonnte (Tanpa Auth Middleware agar Fonnte bisa nembak bebas)
-Route::post('/api/fonnte', [FonnteController::class, 'webhook']);
+//Route::post('/api/fonnte', [FonnteController::class, 'webhook']);
+Route::post('/api/fonnte/{user}', [FonnteController::class, 'webhook']);

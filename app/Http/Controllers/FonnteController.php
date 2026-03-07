@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Setting;
-use App\Models\Contact;
-use App\Models\Persona;
+use App\Models\User; // <-- Pastikan ini ter-import!
 use App\Actions\AI\GenerateChatReplyAction;
 use App\Actions\Message\FetchRecentContextAction;
 use App\Actions\Message\SaveMessageContextAction;
@@ -16,6 +14,7 @@ class FonnteController extends Controller
 {
     public function webhook(
         Request $request,
+        User $user, // <-- TERIMA UUID USER AKTIF DARI URL
         GenerateChatReplyAction $aiAction,
         FetchRecentContextAction $fetchAction,
         SaveMessageContextAction $saveAction
@@ -27,24 +26,28 @@ class FonnteController extends Controller
         if ($imageUrl === 'null' || empty($imageUrl)) $imageUrl = null;
         if (trim($message) === 'non-text message') $message = '';
 
-        Log::info("📨 CHAT DARI: {$sender} | MSG: {$message}");
+        // Log ditambah info ID User biar gampang tracking kalau ada error
+        Log::info("📨 CHAT DARI: {$sender} | MSG: {$message} | USER: {$user->id}");
 
+        // Command AI Off/On khusus untuk user ini
         if (strtolower(trim($message)) === '!ai off') {
-            Setting::updateOrCreate(['key' => 'ai_status'], ['value' => 'off']);
-            $this->sendFonnte($sender, "🤖 AI DIMATIKAN!");
+            $user->settings()->updateOrCreate(['key' => 'ai_status'], ['value' => 'off']);
+            $this->sendFonnte($user, $sender, "🤖 AI DIMATIKAN!");
             return response()->json(['status' => 'success']);
         }
         if (strtolower(trim($message)) === '!ai on') {
-            Setting::updateOrCreate(['key' => 'ai_status'], ['value' => 'on']);
-            $this->sendFonnte($sender, "🤖 AI DIHIDUPKAN!");
+            $user->settings()->updateOrCreate(['key' => 'ai_status'], ['value' => 'on']);
+            $this->sendFonnte($user, $sender, "🤖 AI DIHIDUPKAN!");
             return response()->json(['status' => 'success']);
         }
 
-        $aiStatus = Setting::where('key', 'ai_status')->value('value');
+        // Cek status AI user
+        $aiStatus = $user->settings()->where('key', 'ai_status')->value('value');
         if ($aiStatus !== 'on') return response()->json(['status' => 'ignored']);
 
+        // Cari kontak khusus dari database user ini
         $cleanPhone = preg_replace('/[^0-9\-@.usg]/', '', $sender);
-        $contact = Contact::where('phone_number', $cleanPhone)->where('is_active', true)->first();
+        $contact = $user->contacts()->where('phone_number', $cleanPhone)->where('is_active', true)->first();
 
         if (!$contact) return response()->json(['status' => 'ignored']);
 
@@ -52,38 +55,34 @@ class FonnteController extends Controller
         // 🛡️ LOGIKA ANTI-SPAM GRUP WA (STRICT MENTION)
         // ==========================================
         if ($contact->is_group) {
-            // Ambil nomor khusus bot (atau fallback ke nomor owner)
-            $botPhoneRaw = Setting::where('key', 'bot_phone')->value('value');
+            $botPhoneRaw = $user->settings()->where('key', 'bot_phone')->value('value');
             if (!$botPhoneRaw) {
-                $botPhoneRaw = Setting::where('key', 'owner_phone')->value('value');
+                $botPhoneRaw = $user->settings()->where('key', 'owner_phone')->value('value');
             }
 
-            // Ekstrak angkanya saja untuk mengatasi format aneh
             $botPhone = preg_replace('/[^0-9]/', '', $botPhoneRaw);
 
             if (!$botPhone) {
-                Log::warning("⚠️ Nomor Bot belum di-setting! Cek menu Pengaturan.");
+                Log::warning("⚠️ Nomor Bot belum di-setting untuk User {$user->id}!");
                 return response()->json(['status' => 'ignored']);
             }
 
             $isMentioned = false;
 
-            // Fonnte mengirim mention dalam format @NomorHP (misal: @19851959652463)
             if (stripos($message, '@' . $botPhone) !== false) {
                 $isMentioned = true;
-
-                // Hapus tulisan tag-nya agar otak AI fokus ke pertanyaannya
                 $message = trim(str_ireplace('@' . $botPhone, '', $message));
             }
 
             if (!$isMentioned) {
-                Log::info("💤 Pesan Grup diabaikan (Tidak ada mention ke nomor bot: @{$botPhone}).");
+                Log::info("💤 Pesan Grup diabaikan (Tidak ada mention).");
                 return response()->json(['status' => 'ignored']);
             }
         }
         // ==========================================
 
-        $targetPersona = $contact->persona_id != null ? $contact->persona : Persona::where('is_active', true)->first();
+        // Target Persona khusus milik user ini
+        $targetPersona = $contact->persona_id != null ? $contact->persona : $user->personas()->where('is_active', true)->first();
         if (!$targetPersona) return response()->json(['status' => 'error']);
 
         try {
@@ -104,7 +103,9 @@ class FonnteController extends Controller
             if (empty(trim($replyMessage))) return response()->json(['status' => 'error']);
 
             $saveAction->execute($contact->id, 'assistant', $replyMessage);
-            $this->sendFonnte($sender, $replyMessage);
+
+            // Panggil fungsi sendFonnte dengan membawa $user
+            $this->sendFonnte($user, $sender, $replyMessage);
 
             return response()->json(['status' => 'success']);
 
@@ -114,9 +115,10 @@ class FonnteController extends Controller
         }
     }
 
-    private function sendFonnte($target, $message)
+    // Fungsi ngirim ke Fonnte sekarang wajib pakai token milik User masing-masing
+    private function sendFonnte(User $user, $target, $message)
     {
-        $fonnteToken = Setting::where('key', 'fonnte_token')->value('value');
+        $fonnteToken = $user->settings()->where('key', 'fonnte_token')->value('value');
         $response = Http::withHeaders(['Authorization' => $fonnteToken])->post('https://api.fonnte.com/send', [
             'target' => $target,
             'message' => $message,
