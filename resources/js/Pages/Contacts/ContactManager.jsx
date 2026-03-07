@@ -125,7 +125,7 @@ export default function ContactManager({ contacts, personas }) {
                                     <Label htmlFor="is-group-mode" className="cursor-pointer">
                                         <div className="font-semibold text-slate-800">Ini adalah Grup WA</div>
                                         <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                                            Bot hanya akan membalas jika di-mention (ketik @aziz)
+                                            Bot hanya akan membalas jika di-mention
                                         </div>
                                     </Label>
                                 </div>

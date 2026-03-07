@@ -59,7 +59,7 @@ class ProcessFonnteMessageAction
 
         $this->saveMessage->execute($contact->id, 'assistant', $aiReplyText);
 
-        $delay = $this->calculateDelay->execute($aiReplyText);
+        $delay = $this->calculateDelay->execute($incomingText, $aiReplyText);
 
         Http::withHeaders([
             'Authorization' => env('FONNTE_TOKEN')

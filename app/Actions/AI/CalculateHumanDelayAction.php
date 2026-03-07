@@ -5,19 +5,21 @@ namespace App\Actions\AI;
 
 class CalculateHumanDelayAction
 {
-    public function execute(string $aiReplyText): int
+    public function execute(string $incomingText, string $aiReplyText): int
     {
-        $textLength = strlen($aiReplyText);
+        //Waktu baca berdasarkan panjang teks
+        $readTime = strlen($incomingText) * 0.05;
 
-        // Asumsi kecepatan ngetik santai: 30 karakter per detik
-        $typingDelay = ceil($textLength / 30);
+        //Waktu jeda sebelum AI menjawab
+        $thinkTime = rand(2, 8);
 
-        // Tambahkan elemen acak biar sistem WA nggak curiga
-        $randomBuffer = rand(1, 3);
+        //Waktu mengetik berdasarkan panjang teks
+        $typeTime = strlen($aiReplyText) * 0.1;
 
-        $totalDelay = $typingDelay + $randomBuffer;
+        //Total waktu jeda
+        $totalDelay = ceil($readTime + $thinkTime + $typeTime);
 
-        // Minimal delay 2 detik, maksimal ditahan di 8 detik
-        return (int)max(5, min($totalDelay, 20));
+        //Min jeda 2 detik dan maks 20 detik
+        return (int) max(2, min($totalDelay, 20));
     }
 }
