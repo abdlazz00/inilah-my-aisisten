@@ -15,16 +15,20 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $aiStatus = Setting::where('key', 'ai_status')->value('value') ?? 'off';
+        $user = auth()->user();
+
+        $aiStatus = $user->settings()->where('key', 'ai_status')->value('value') ?? 'off';
 
         $stats = [
-            'total_personas' => Persona::count(),
-            'total_contacts' => Contact::count(),
-            'total_messages' => Message::count(),
+            'total_personas' => $user->personas()->count(),
+            'total_contacts' => $user->contacts()->count(),
+            'total_messages' => Message::whereHas('contact', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->count(),
             'ai_status' => $aiStatus === 'on'
         ];
 
-        $recentContacts = Contact::with('persona')
+        $recentContacts = $user->contacts()->with('persona')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
@@ -37,10 +41,12 @@ class DashboardController extends Controller
 
     public function toggleAi(Request $request)
     {
-        $currentStatus = Setting::where('key', 'ai_status')->value('value') ?? 'off';
+        $user = auth()->user();
+
+        $currentStatus = $user->settings()->where('key', 'ai_status')->value('value') ?? 'off';
         $newStatus = $currentStatus === 'on' ? 'off' : 'on';
 
-        Setting::updateOrCreate(
+        $user->settings()->updateOrCreate(
             ['key' => 'ai_status'],
             ['value' => $newStatus]
         );
@@ -48,12 +54,15 @@ class DashboardController extends Controller
         return back()->with('success', "AI Status berhasil diubah menjadi " . strtoupper($newStatus));
     }
 
-    // FUNGSI BARU: BIKIN LAPORAN AJUDAN
     public function summarize(SummarizeDailyChatsAction $summarizer)
     {
         $today = Carbon::today();
-        // Ambil semua pesan hari ini
+        $user = auth()->user();
+
         $messages = Message::with('contact')
+            ->whereHas('contact', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
             ->whereDate('created_at', $today)
             ->orderBy('contact_id')
             ->orderBy('created_at', 'asc')
@@ -63,7 +72,6 @@ class DashboardController extends Controller
             return response()->json(['summary' => 'Belum ada obrolan masuk maupun keluar hari ini, Bos!']);
         }
 
-        // Rakit pesan agar rapi dibaca AI
         $chatLog = "";
         $currentContact = "";
         foreach ($messages as $msg) {
