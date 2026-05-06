@@ -1,6 +1,3 @@
-Siapp bre! Tinggal klik *Copy* di pojok kanan atas kotak ini, murni tanpa basa-basi:
-
-
 # 🤖 My AIsisten (Stealth Personal AI Assistant)
 
 **My AIsisten** adalah aplikasi web yang menyulap nomor WhatsApp Anda menjadi asisten pribadi bertenaga AI (Groq Llama-3). Didesain dengan arsitektur *stealth* (penyamaran), AI ini membalas pesan layaknya manusia asli berdasarkan *Persona* yang Anda buat, dan **hanya merespons** nomor atau grup yang sudah Anda izinkan (Whitelist).
