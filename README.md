@@ -2,8 +2,6 @@
 
 **My AIsisten** adalah aplikasi web yang menyulap nomor WhatsApp Anda menjadi asisten pribadi bertenaga AI (Groq Llama-3). Didesain dengan arsitektur *stealth* (penyamaran), AI ini membalas pesan layaknya manusia asli berdasarkan *Persona* yang Anda buat, dan **hanya merespons** nomor atau grup yang sudah Anda izinkan (Whitelist).
 
-Dibangun untuk menyelesaikan masalah ngilang tanpa kabar karena ngoding biar ayang ga ngambek.
-
 ![UI/UX](https://img.shields.io/badge/UI%2FUX-shadcn%2Fui-black?style=for-the-badge&logo=uiomatic)
 ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
